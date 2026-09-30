@@ -1,13 +1,13 @@
 {
   "domain": "ha_netscan",
   "name": "Netzwerk-Inventar",
-  "codeowners": ["@CF.SmartLiving"],
+  "codeowners": ["@Fuhrmann81"],
   "config_flow": true,
   "dependencies": ["http", "frontend", "panel_custom", "network"],
-  "documentation": "https://github.com/OWNER/ha-netscan",
+  "documentation": "https://github.com/Fuhrmann81/ha-netscan",
   "integration_type": "service",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/OWNER/ha-netscan/issues",
+  "issue_tracker": "https://github.com/Fuhrmann81/ha-netscan/issues",
   "requirements": [],
   "single_config_entry": true,
   "version": "0.7.0"
