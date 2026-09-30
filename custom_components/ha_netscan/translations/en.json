@@ -1,0 +1,69 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Network Inventory",
+        "description": "Scans your home network and suggests matching integrations (core, HACS, GitHub). A scan takes about one minute.",
+        "data": {
+          "subnet": "Subnet",
+          "scan_interval_hours": "Scan automatically every … hours (0 = manual only)"
+        },
+        "data_description": {
+          "subnet": "e.g. 192.168.50.0/24 – detected from your network adapter"
+        }
+      }
+    },
+    "error": {
+      "invalid_subnet": "Invalid subnet, example: 192.168.50.0/24",
+      "too_large": "Network too large – at most /22 (1022 addresses)",
+      "not_private": "Only private IPv4 networks (e.g. 192.168.x.x) are allowed"
+    },
+    "abort": {
+      "single_instance_allowed": "Network Inventory is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Network Inventory – options",
+        "data": {
+          "subnet": "Subnet",
+          "scan_interval_hours": "Scan automatically every … hours (0 = manual only)"
+        }
+      }
+    },
+    "error": {
+      "invalid_subnet": "Invalid subnet, example: 192.168.50.0/24",
+      "too_large": "Network too large – at most /22 (1022 addresses)",
+      "not_private": "Only private IPv4 networks are allowed"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "devices": {
+        "name": "Devices on network",
+        "unit_of_measurement": "devices"
+      },
+      "open_suggestions": {
+        "name": "Open suggestions",
+        "unit_of_measurement": "devices"
+      },
+      "integrated": {
+        "name": "Integrated",
+        "unit_of_measurement": "devices"
+      },
+      "upgrades": {
+        "name": "Optional upgrades",
+        "unit_of_measurement": "devices"
+      },
+      "last_scan": {
+        "name": "Last scan"
+      }
+    },
+    "button": {
+      "scan": {
+        "name": "Scan now"
+      }
+    }
+  }
+}

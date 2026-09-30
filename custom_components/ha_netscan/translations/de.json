@@ -1,0 +1,69 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Netzwerk-Inventar einrichten",
+        "description": "Scannt dein Heimnetz nach Geräten und schlägt passende Integrationen (Core, HACS, GitHub) vor. Ein Scan dauert ca. 1 Minute.",
+        "data": {
+          "subnet": "Subnetz",
+          "scan_interval_hours": "Automatisch scannen alle … Stunden (0 = nur manuell)"
+        },
+        "data_description": {
+          "subnet": "z. B. 192.168.50.0/24 – wurde aus deinem Netzwerkadapter ermittelt"
+        }
+      }
+    },
+    "error": {
+      "invalid_subnet": "Ungültiges Subnetz, Beispiel: 192.168.50.0/24",
+      "too_large": "Netz zu groß – höchstens /22 (1022 Adressen)",
+      "not_private": "Nur private IPv4-Netze (z. B. 192.168.x.x) sind erlaubt"
+    },
+    "abort": {
+      "single_instance_allowed": "Netzwerk-Inventar ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Netzwerk-Inventar – Optionen",
+        "data": {
+          "subnet": "Subnetz",
+          "scan_interval_hours": "Automatisch scannen alle … Stunden (0 = nur manuell)"
+        }
+      }
+    },
+    "error": {
+      "invalid_subnet": "Ungültiges Subnetz, Beispiel: 192.168.50.0/24",
+      "too_large": "Netz zu groß – höchstens /22 (1022 Adressen)",
+      "not_private": "Nur private IPv4-Netze (z. B. 192.168.x.x) sind erlaubt"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "devices": {
+        "name": "Geräte im Netz",
+        "unit_of_measurement": "Geräte"
+      },
+      "open_suggestions": {
+        "name": "Offene Vorschläge",
+        "unit_of_measurement": "Geräte"
+      },
+      "integrated": {
+        "name": "Eingebunden",
+        "unit_of_measurement": "Geräte"
+      },
+      "upgrades": {
+        "name": "Optionale Upgrades",
+        "unit_of_measurement": "Geräte"
+      },
+      "last_scan": {
+        "name": "Letzter Scan"
+      }
+    },
+    "button": {
+      "scan": {
+        "name": "Jetzt scannen"
+      }
+    }
+  }
+}
