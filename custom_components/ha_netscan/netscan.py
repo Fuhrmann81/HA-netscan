@@ -10,8 +10,8 @@ Nur Python-Standardbibliothek, keine Installation nötig (Python 3.9+).
 
 Beispiele:
     python3 ha_netscan.py
-    python3 ha_netscan.py --subnet 192.168.50.0/24
-    HA_TOKEN=eyJ... python3 ha_netscan.py --ha-url http://192.168.50.10:8123
+    python3 ha_netscan.py --subnet 192.168.1.0/24
+    HA_TOKEN=eyJ... python3 ha_netscan.py --ha-url http://homeassistant.local:8123
 
 Datenquellen (werden beim ersten Lauf geladen und 7 Tage zwischengespeichert):
   * Home Assistant Core: generated/dhcp.py, zeroconf.py, ssdp.py, integrations.json
@@ -47,8 +47,22 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 
-VERSION = "0.7"
-DEFAULT_SUBNET = "192.168.50.0/24"
+VERSION = "0.8"
+FALLBACK_SUBNET = "192.168.1.0/24"
+
+
+def detect_subnet() -> str:
+    """Eigenes /24-Netz ermitteln (es wird dabei nichts gesendet)."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("1.1.1.1", 53))  # UDP: es wird nichts gesendet, nur die Route gewählt
+            ip = s.getsockname()[0]
+        net = ipaddress.ip_network(f"{ip}/24", strict=False)
+        if net.is_private and not net.is_loopback and not ip.startswith("192.0.2."):
+            return str(net)
+    except OSError:
+        pass
+    return FALLBACK_SUBNET
 CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cache", "ha_netscan")
 CACHE_MAX_AGE = 7 * 24 * 3600
 UA = f"ha_netscan/{VERSION}"
@@ -998,7 +1012,7 @@ def write_html(hosts: list, path: str, subnet: str, meta: dict) -> None:
 def render_html(hosts: list, subnet: str, meta: dict) -> str:
     e = html.escape
     rows = []
-    n_open = n_done = n_upg = 0
+    n_open = n_done = n_upg = n_none = 0
     for h in hosts:
         sug_html = []
         top = [s for s in h.suggestions if s.kind != "github"][:5]
@@ -1006,9 +1020,11 @@ def render_html(hosts: list, subnet: str, meta: dict) -> str:
         has_open = not any(s.installed for s in top) and \
             any(not s.upgrade and s.confidence >= 55 for s in top)
         has_done = any(s.installed for s in top)
+        has_upg = any(s.upgrade for s in top)
         n_open += has_open
         n_done += has_done
-        n_upg += any(s.upgrade for s in top)
+        n_upg += has_upg
+        n_none += not (has_open or has_done or has_upg)
         if any(s.installed for s in top):
             gh = []  # schon eingebunden – keine Suche nötig
         for s in top + gh:
@@ -1033,7 +1049,8 @@ def render_html(hosts: list, subnet: str, meta: dict) -> str:
         protos = "".join(f"<span class='pill'>{e(p)}</span>" for p in h.protocols)
         titles = "; ".join(f"{p}: {v['title']}" for p, v in h.http.items() if v.get("title"))
         rows.append(
-            f"<tr data-open='{int(has_open)}'>"
+            f"<tr data-open='{int(has_open)}' data-done='{int(has_done)}' data-upg='{int(has_upg)}'"
+            f" data-none='{int(not (has_open or has_done or has_upg))}'>"
             f"<td class='mono'><a href='http://{e(h.ip)}' target='_blank'>{e(h.ip)}</a></td>"
             f"<td><b>{e(h.display_name) or '–'}</b>"
             f"<div class='sub'>{e(h.hostname)}</div><div class='sub'>{e(titles)}</div></td>"
@@ -1050,7 +1067,9 @@ def render_html(hosts: list, subnet: str, meta: dict) -> str:
 body{{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}}
 header{{padding:20px 16px 8px;max-width:1400px;margin:auto}}h1{{font-size:20px;margin:0 0 4px}}
 .meta{{color:var(--mut)}}.bar{{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}}
-.stat{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px}}
+.stat{{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--fg);font:inherit;text-align:left;cursor:pointer}}
+.stat:hover{{border-color:var(--mut)}}.stat.on{{border-color:var(--core);box-shadow:inset 0 0 0 1px var(--core)}}
+#hint{{margin:-4px 0 10px}}
 .stat b{{font-size:18px;display:block}}#q{{padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);min-width:220px}}
 .wrap{{max-width:1400px;margin:auto;padding:0 16px 40px;overflow-x:auto}}
 table{{border-collapse:collapse;width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px}}
@@ -1066,21 +1085,27 @@ label{{color:var(--mut)}}
 </style></head><body>
 <header><h1>Netzwerk-Inventar {e(subnet)}</h1>
 <div class="meta">Scan vom {e(meta['time'])} · Dauer {meta['duration']:.0f} s · Datenbasis: {meta['core']} Core-Integrationen, {meta['hacs']} HACS-Repos{' · Abgleich mit deinem Home Assistant aktiv' if meta['ha'] else ' · ohne Abgleich mit Home Assistant (--ha-url/HA_TOKEN)'}{' · ' + e(meta['source']) if meta.get('source') else ''}</div>
-<div class="bar"><div class="stat"><b>{len(hosts)}</b>Geräte</div>
-<div class="stat"><b>{n_open}</b>mit offenem Vorschlag</div>
-<div class="stat"><b>{n_done}</b>bereits eingebunden</div>
-<div class="stat"><b>{n_upg}</b>mit optionalem Upgrade</div>
-<input id="q" placeholder="Filtern (IP, Name, Hersteller …)">
-<label><input type="checkbox" id="only"> nur Geräte mit offenem Vorschlag</label></div></header>
+<div class="bar"><button class="stat on" data-f="all"><b>{len(hosts)}</b>Geräte</button>
+<button class="stat" data-f="open"><b>{n_open}</b>mit offenem Vorschlag</button>
+<button class="stat" data-f="upg"><b>{n_upg}</b>mit verfügbarem Upgrade</button>
+<button class="stat" data-f="done"><b>{n_done}</b>bereits eingebunden</button>
+<button class="stat" data-f="none"><b>{n_none}</b>ohne Zuordnung</button>
+<input id="q" placeholder="Suchen (IP, Name, Hersteller …)"></div>
+<div class="sub" id="hint">Auf eine Kachel klicken, um die Liste zu filtern.</div></header>
 <div class="wrap"><table><thead><tr><th>IP</th><th>Gerät</th><th>MAC / Hersteller</th><th>Protokolle</th><th>Vorschläge</th></tr></thead>
 <tbody>{''.join(rows)}</tbody></table>
 <p class="sub">„Hinzufügen“-Links öffnen über my.home-assistant.io direkt deinen Home Assistant. „In HACS öffnen“ setzt voraus, dass HACS installiert ist.
 Sicherheit: hoch = eindeutige Kennung (mDNS/DHCP/API), mittel = Port/Weboberfläche, niedrig = nur Herstellername.</p></div>
 <script>
-const q=document.getElementById('q'),o=document.getElementById('only');
-function f(){{const t=q.value.toLowerCase();document.querySelectorAll('tbody tr').forEach(r=>{{
-r.style.display=(r.textContent.toLowerCase().includes(t)&&(!o.checked||r.dataset.open==='1'))?'':'none'}})}}
-q.oninput=f;o.onchange=f;
+const q=document.getElementById('q');let mode='all';
+function f(){{const t=q.value.toLowerCase();let n=0;document.querySelectorAll('tbody tr').forEach(r=>{{
+const ok=r.textContent.toLowerCase().includes(t)&&(mode==='all'||r.dataset[mode]==='1');
+r.style.display=ok?'':'none';n+=ok}});
+document.getElementById('hint').textContent=mode==='all'&&!t?'Auf eine Kachel klicken, um die Liste zu filtern.':n+' Geräte angezeigt'}}
+document.querySelectorAll('.stat[data-f]').forEach(b=>b.onclick=()=>{{
+mode=(mode===b.dataset.f&&mode!=='all')?'all':b.dataset.f;
+document.querySelectorAll('.stat[data-f]').forEach(x=>x.classList.toggle('on',x.dataset.f===mode));f()}});
+q.oninput=f;
 </script></body></html>"""
     return doc
 
@@ -1189,9 +1214,10 @@ def main() -> int:
         except Exception:  # noqa: BLE001
             pass
     ap = argparse.ArgumentParser(description="Netzwerk scannen und passende Home-Assistant-Integrationen vorschlagen")
-    ap.add_argument("--subnet", default=DEFAULT_SUBNET, help=f"z. B. {DEFAULT_SUBNET}")
+    ap.add_argument("--subnet", default="",
+                    help="z. B. 192.168.1.0/24 – ohne Angabe wird das eigene Netz erkannt")
     ap.add_argument("--ha-url", default=os.environ.get("HA_URL", ""),
-                    help="z. B. http://192.168.50.10:8123 (für Abgleich mit eingerichteten Integrationen)")
+                    help="z. B. http://homeassistant.local:8123 (für Abgleich mit eingerichteten Integrationen)")
     ap.add_argument("--ha-token", default=os.environ.get("HA_TOKEN", ""),
                     help="Long-Lived Access Token (besser per Umgebungsvariable HA_TOKEN)")
     ap.add_argument("--out", default="ha_netscan_report.html", help="HTML-Bericht")
@@ -1202,6 +1228,9 @@ def main() -> int:
     ap.add_argument("--no-http", action="store_true", help="keine Web-Oberflächen abfragen")
     args = ap.parse_args()
 
+    if not args.subnet:
+        args.subnet = detect_subnet()
+        log(f"Subnetz automatisch erkannt: {args.subnet} (ändern mit --subnet)")
     t0 = time.time()
     kb = Knowledge(refresh=args.refresh)
     alive = scan_network(args.subnet, kb, args.timeout, args.workers, not args.no_http)

@@ -16,6 +16,8 @@ Bereits eingerichtete Integrationen werden erkannt und markiert.
   („eingerichtet als …“)
 - Cloud-Integrationen mit lokaler Alternative (z. B. Tuya → LocalTuya)
   werden als **optionales Upgrade** gezeigt
+- Filter per Klick auf die Kacheln: offene Vorschläge, verfügbare Upgrades,
+  eingebunden, ohne Zuordnung – plus Freitextsuche
 - Sensoren: Geräte im Netz, Offene Vorschläge (mit Geräteliste als Attribut),
   Eingebunden, Optionale Upgrades, Letzter Scan
 - Automatischer Scan in einstellbarem Intervall (Standard 24 h, 0 = nur manuell)
@@ -51,7 +53,8 @@ Beim ersten Scan werden geladen und 7 Tage zwischengespeichert
 `netscan.py` läuft auch ohne Home Assistant (Python 3.9+, keine Abhängigkeiten):
 
 ```
-python netscan.py --subnet 192.168.50.0/24
+python netscan.py                          # eigenes Netz wird automatisch erkannt
+python netscan.py --subnet 192.168.1.0/24  # oder Netz selbst angeben
 ```
 
 ## Lizenz

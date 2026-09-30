@@ -9,12 +9,12 @@
           "scan_interval_hours": "Automatisch scannen alle … Stunden (0 = nur manuell)"
         },
         "data_description": {
-          "subnet": "z. B. 192.168.50.0/24 – wurde aus deinem Netzwerkadapter ermittelt"
+          "subnet": "z. B. 192.168.1.0/24 – wurde aus deinem Netzwerkadapter ermittelt"
         }
       }
     },
     "error": {
-      "invalid_subnet": "Ungültiges Subnetz, Beispiel: 192.168.50.0/24",
+      "invalid_subnet": "Ungültiges Subnetz, Beispiel: 192.168.1.0/24",
       "too_large": "Netz zu groß – höchstens /22 (1022 Adressen)",
       "not_private": "Nur private IPv4-Netze (z. B. 192.168.x.x) sind erlaubt"
     },
@@ -33,7 +33,7 @@
       }
     },
     "error": {
-      "invalid_subnet": "Ungültiges Subnetz, Beispiel: 192.168.50.0/24",
+      "invalid_subnet": "Ungültiges Subnetz, Beispiel: 192.168.1.0/24",
       "too_large": "Netz zu groß – höchstens /22 (1022 Adressen)",
       "not_private": "Nur private IPv4-Netze (z. B. 192.168.x.x) sind erlaubt"
     }
