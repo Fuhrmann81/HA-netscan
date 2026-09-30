@@ -1,7 +1,7 @@
 {
   "domain": "ha_netscan",
   "name": "Netzwerk-Inventar",
-  "codeowners": [],
+  "codeowners": [CF.SmartLiving],
   "config_flow": true,
   "dependencies": ["http", "frontend", "panel_custom", "network"],
   "documentation": "https://github.com/OWNER/ha-netscan",
