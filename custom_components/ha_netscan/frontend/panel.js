@@ -21,6 +21,7 @@ class HaNetscanPanel extends HTMLElement {
         header { display:flex; align-items:center; gap:12px; height:56px; padding:0 12px 0 4px;
                  background: var(--app-header-background-color, var(--primary-color));
                  color: var(--app-header-text-color, #fff); flex:0 0 auto; }
+        h1 small { font-size:12px; opacity:.6; margin-left:6px; }
         h1 { font-size:20px; font-weight:400; margin:0; flex:1; white-space:nowrap;
              overflow:hidden; text-overflow:ellipsis; }
         #status { font-size:13px; opacity:.9; white-space:nowrap; }
@@ -40,7 +41,7 @@ class HaNetscanPanel extends HTMLElement {
       </style>
       <header>
         <ha-menu-button></ha-menu-button>
-        <h1>Netzwerk-Inventar</h1>
+        <h1>Netzwerk-Inventar <small id="ver"></small></h1>
         <span id="status"></span>
         <button id="scan">Jetzt scannen</button>
       </header>
@@ -60,10 +61,29 @@ class HaNetscanPanel extends HTMLElement {
     const mb = this.shadowRoot.querySelector("ha-menu-button");
     if (mb) mb.narrow = v;
   }
-  set panel(_p) {}
+  set panel(p) {
+    const v = p && p.config && p.config.version;
+    if (v) this.shadowRoot.getElementById("ver").textContent = "v" + v;
+  }
 
-  disconnectedCallback() { clearTimeout(this._timer); }
-  connectedCallback() { if (this._hass) this._load(); }
+  // Höhe des Berichts fest aus der Fenstergröße berechnen – unabhängig davon,
+  // welche Höhe Home Assistant dem Panel-Container gibt.
+  _fit() {
+    const f = this.shadowRoot.querySelector("iframe");
+    if (!f) return;
+    const top = f.getBoundingClientRect().top || 56;
+    f.style.height = Math.max(300, window.innerHeight - top) + "px";
+  }
+
+  disconnectedCallback() {
+    clearTimeout(this._timer);
+    window.removeEventListener("resize", this._onResize);
+  }
+  connectedCallback() {
+    this._onResize = this._onResize || (() => this._fit());
+    window.addEventListener("resize", this._onResize);
+    if (this._hass) this._load();
+  }
 
   async _scan() {
     try {
@@ -100,6 +120,8 @@ class HaNetscanPanel extends HTMLElement {
       f.srcdoc = d.html;
       body.replaceWith(f);
       f.id = "body";
+      requestAnimationFrame(() => this._fit());
+      setTimeout(() => this._fit(), 300);
     } else if (!d.html) {
       body.className = "empty";
       body.innerHTML = d.scanning

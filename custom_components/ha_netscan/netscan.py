@@ -47,7 +47,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 
-VERSION = "0.8.1"
+VERSION = "0.8.2"
 FALLBACK_SUBNET = "192.168.1.0/24"
 
 

@@ -14,7 +14,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.start import async_at_started
 
-from .const import API_URL, DOMAIN, NAME, PANEL_ELEMENT, PANEL_URL, STATIC_URL
+from .const import VERSION, API_URL, DOMAIN, NAME, PANEL_ELEMENT, PANEL_URL, STATIC_URL
 from .coordinator import NetscanCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,9 +69,9 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
             webcomponent_name=PANEL_ELEMENT,
             sidebar_title=NAME,
             sidebar_icon="mdi:lan-check",
-            module_url=f"{STATIC_URL}/panel.js?v=0.8.1",
+            module_url=f"{STATIC_URL}/panel.js?v={VERSION}",
             require_admin=True,
-            config={},
+            config={"version": VERSION},
         )
         data["panel"] = True
 

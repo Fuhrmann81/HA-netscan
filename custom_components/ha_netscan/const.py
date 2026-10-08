@@ -15,3 +15,5 @@ API_URL = "/api/ha_netscan/report"
 
 # Schlüssel in Config-Entries, unter denen Integrationen typischerweise die IP speichern
 HOST_KEYS = ("host", "ip_address", "ip", "address", "url", "base_url", "hostname")
+
+VERSION = "0.8.2"
