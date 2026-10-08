@@ -69,7 +69,7 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
             webcomponent_name=PANEL_ELEMENT,
             sidebar_title=NAME,
             sidebar_icon="mdi:lan-check",
-            module_url=f"{STATIC_URL}/panel.js?v=0.8.0",
+            module_url=f"{STATIC_URL}/panel.js?v=0.8.1",
             require_admin=True,
             config={},
         )

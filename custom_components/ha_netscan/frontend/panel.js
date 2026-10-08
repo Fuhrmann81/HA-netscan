@@ -15,7 +15,7 @@ class HaNetscanPanel extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display:flex; flex-direction:column; height:100%;
+        :host { display:flex; flex-direction:column; height:100vh; height:100dvh; overflow:hidden;
                 background: var(--primary-background-color); color: var(--primary-text-color);
                 font-family: var(--paper-font-body1_-_font-family, system-ui, sans-serif); }
         header { display:flex; align-items:center; gap:12px; height:56px; padding:0 12px 0 4px;
@@ -31,7 +31,9 @@ class HaNetscanPanel extends HTMLElement {
                 border-right-color:transparent; border-radius:50%; animation:r 1s linear infinite;
                 vertical-align:-2px; margin-right:6px; }
         @keyframes r { to { transform:rotate(360deg) } }
-        iframe { flex:1 1 auto; border:0; width:100%; background: var(--primary-background-color); }
+        iframe { display:block; flex:1 1 auto; min-height:0; border:0; width:100%;
+                 height: calc(100vh - 56px); height: calc(100dvh - 56px);
+                 background: var(--primary-background-color); }
         .empty { padding:40px 20px; text-align:center; color: var(--secondary-text-color); }
         .err { color: var(--error-color, #db4437); }
         @media (max-width: 600px) { #status { display:none } }
